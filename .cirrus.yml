@@ -1,0 +1,37 @@
+env:
+  TZ: Asia/Jakarta
+  ghuser_name: ENCRYPTED[501628c70bd864011f1b5833c04327305ae0f646358ecd63b8b3bcb56071d5f2af15c603735efb141736c669fa708303]
+  ghuser_email: ENCRYPTED[0d387791cf27cfab7d1fb93955153e8413cb8e1738ab64e36a0bf721bb9ec7b350f713afdf786102aa1582007e7ee8ef]
+  ghuser_token: ENCRYPTED[d5bd8d15ef8a7778186b472c2c84201876e2e0e2394d6dd69a86ee274d1bd17464578fcb0ddc863ffe5c2286b4c10215]
+  tgbot_token: ENCRYPTED[fb5e11a5555cb6ef4b7f1a01df5055e54823a7f16e561f78e345f0aa8d0bfa0b531aa4d7347ac8ddfb3194fe5976d227]
+  tguser_chatid: '1201257517'
+
+container:
+  image: mhmmdfdlyas/dockerfile:t-ubuntu
+  cpu: 8
+  memory: 16G
+
+profile_task:
+  name: Build LLVM (profile)
+  skip: "!changesInclude('datestamp')"
+  timeout_in: 120m
+  only_if: $CIRRUS_BRANCH == 'main'
+  script:
+    - ./init.sh ccache
+    - find build/llvm/instrumented -type f ! -name 'profdata.prof' -delete
+  profdata_cache:
+    folder: build/llvm/instrumented
+    fingerprint_key: $CIRRUS_BUILD_ID
+
+final_task:
+  depends_on:
+    - 'Build LLVM (profile)'
+  name: Build LLVM (final)
+  skip: "!changesInclude('datestamp')"
+  timeout_in: 120m
+  only_if: $CIRRUS_BRANCH == 'main'
+  profdata_cache:
+    folder: build/llvm/instrumented
+    fingerprint_key: $CIRRUS_BUILD_ID
+  script:
+    - ./init.sh release
