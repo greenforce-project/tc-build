@@ -162,22 +162,22 @@ touch "README.md"
 {
     echo -e "# Greenforce Clang\n"
     echo -e "To get started with Greenforce Clang, you'll need to get familiar with [Building Linux with Clang/LLVM](https://docs.kernel.org/kbuild/llvm.html).\n"
-    echo -e "This is how you start initializing the Greenforce Clang to your local or server, use a command like this:\n"
+    echo -e "This is how you start initializing the Greenforce Clang to your server, use a command like this:\n"
     echo -e '```bash'
     echo -e "# Create a directory for the source files"
     echo -e "mkdir -p ~/toolchains/greenforce-clang"
     echo -e '```\n'
-    echo -e "Then to download:\n"
+    echo -e "Then to download & extract:\n"
     echo -e '```bash'
     echo -e "wget -c ${release_url} -O - | tar --use-compress-program=unzstd -xf - -C ~/toolchains/greenforce-clang\n"
     echo -e '```\n'
-    echo -e "For more information, see ${release_info} regarding the majority changes each week.\n"
+    echo -e "You can see the major changes each week in ${release_info}.\n"
     echo -e "## Host compatibility\n"
     echo -e "This toolchain is built on ${distro_image}, which uses glibc ${glibc_version}. Compatibility with older distributions cannot be guaranteed. Other libc implementations (such as musl) are not supported.\n"
     echo -e "## Building Linux\n"
     echo -e 'Make sure you have this toolchain in your `PATH`:\n'
     echo -e '```bash\n'
-    echo -e "export PATH=\"~/toolchains/greenforce-clang/bin:$PATH\"\n"
+    echo -e 'export PATH="~/toolchains/greenforce-clang/bin:$PATH"\n'
     echo -e '```\n'
     echo -e 'For an AArch64 cross-compilation setup, you must set the following variables. Some of them can be environment variables, but some must be passed directly to `make` as a command-line argument. It is recommended to pass **all** of them as `make` arguments to avoid confusing errors:\n'
     echo -e '- `CC=clang` (must be passed directly to `make`)'
