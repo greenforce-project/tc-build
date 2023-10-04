@@ -110,12 +110,17 @@ fi
 
 # GitHub release environment
 pushd "${DIR}/src/llvm-project" || exit 1
-export lcommit_message="$(git log --pretty='format:%s' | head -n1)"
-export llvm_hash="$(git rev-parse --verify HEAD)"
+if [[ -e hash_tracking ]] ; then
+    source hash_tracking
+    export lcommit_message llvm_hash
+else
+    export lcommit_message="$(git log --pretty='format:%s' | head -n1)"
+    export llvm_hash="$(git rev-parse --verify HEAD)"
+fi
 export short_hash="$(echo ${llvm_hash} | cut -c1-8)"
 popd || exit 1
 
-export llvm_url="https://github.com/llvm/llvm-project/commit/${short_hash}"
+export llvm_url="https://github.com/greenforce-project/llvm-project.git/commit/${short_hash}"
 export binutils_version="$(ls ${DIR}/src/ | grep "^binutils-" | sed "s/binutils-//g")"
 export clang_version="$(${install_path}/bin/clang --version | head -n1)"
 export short_clang="$(echo ${clang_version} | cut -d' ' -f4)"
