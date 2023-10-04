@@ -38,7 +38,7 @@ start_time="$(date +'%s')"
 ./build-llvm.py ${build_flags} \
     --build-type "Release" \
     --build-stage1-only \
-    --defines LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3' CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
+    --defines LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
     --install-folder "${install_path}" \
     --pgo llvm \
     --projects clang lld polly \
