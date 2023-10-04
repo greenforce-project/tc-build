@@ -169,7 +169,7 @@ touch "README.md"
     echo -e '```\n'
     echo -e "Then to download:\n"
     echo -e '```bash'
-    echo -e "wget -c ${release_url} -O - | tar -xz -C ~/toolchains/greenforce-clang\n"
+    echo -e "wget -c ${release_url} -O - | tar --use-compress-program=unzstd -xf - -C ~/toolchains/greenforce-clang\n"
     echo -e '```\n'
     echo -e "For more information, see ${release_info} regarding the majority changes each week.\n"
     echo -e "## Host compatibility\n"
