@@ -114,17 +114,18 @@ export lcommit_message="$(git log --pretty='format:%s' | head -n1)"
 export llvm_hash="$(git rev-parse --verify HEAD)"
 export short_hash="$(echo ${llvm_hash} | cut -c1-8)"
 popd || exit 1
+
 export llvm_url="https://github.com/llvm/llvm-project/commit/${short_hash}"
 export binutils_version="$(ls ${DIR}/src/ | grep "^binutils-" | sed "s/binutils-//g")"
 export clang_version="$(${install_path}/bin/clang --version | head -n1)"
 export short_clang="$(echo ${clang_version} | cut -d' ' -f4)"
-export release_file="greenforce-clang-${short_clang}-${release_tag}-${release_time}.tar.gz"
+export release_file="greenforce-clang-${short_clang}-${release_tag}-${release_time}.tar.zst"
 export release_info="clang-${short_clang}-${release_tag}-${release_time}-info.txt"
 export release_url="https://github.com/greenforce-project/greenforce_clang/releases/download/${release_tag}/${release_file}"
 
 # Tar clang release file
 pushd "${install_path}" || exit 1
-time tar -czf "${release_file}" ./*
+time tar -I'../zstd --ultra -22 -T0' -cf "${release_file}" ./*
 popd || exit 1
 
 export release_path="${install_path}/${release_file}"
