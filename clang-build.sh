@@ -120,7 +120,7 @@ fi
 export short_hash="$(echo ${llvm_hash} | cut -c1-8)"
 popd || exit 1
 
-export llvm_url="https://github.com/greenforce-project/llvm-project.git/commit/${short_hash}"
+export llvm_url="https://github.com/greenforce-project/llvm-project/commit/${short_hash}"
 export binutils_version="$(ls ${DIR}/src/ | grep "^binutils-" | sed "s/binutils-//g")"
 export clang_version="$(${install_path}/bin/clang --version | head -n1)"
 export short_clang="$(echo ${clang_version} | cut -d' ' -f4)"
