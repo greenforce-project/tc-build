@@ -101,7 +101,7 @@ done
 
 if ! pushd "${DIR}/greenforce_clang"; then       # default is empty
     kecho "Cloning catalogue repository..."
-    git clone -q -j64 --single-branch -b main https://fadlyas07:${ghuser_token}@github.com/greenforce-project/greenforce_clang --depth=1
+    git clone -q -j64 --single-branch -b main https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang --depth=1
     kecho "done!"
 else
     kecho "catalogue repository exist! [$(pwd)]"
