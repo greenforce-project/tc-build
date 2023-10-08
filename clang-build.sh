@@ -8,29 +8,6 @@ build_info "🔨 Greenforce Clang Build Started!
 Build Task: ${build_type}
 Build Date: $(date +'%Y-%m-%d %H:%M')"
 
-# Function to push github tags and release
-function push_rtag() {
-    chmod +x "${DIR}/ghrelease_tools"
-    ./ghrelease_tools release \
-        --security-token "${ghuser_token}" \
-        --user "greenforce-project" \
-        --repo "greenforce_clang" \
-        --tag "${release_tag}" \
-        --name "${release_date}" \
-        --description "${commit_message}" || echo "Tag already exists!"
-}
-
-function push_rfile() {
-    chmod +x "${DIR}/ghrelease_tools"
-    ./ghrelease_tools upload \
-        --security-token "${ghuser_token}" \
-        --user "greenforce-project" \
-        --repo "greenforce_clang" \
-        --tag "${release_tag}" \
-        --name "${release_file}" \
-        --file "${release_path}" || echo "Failed to push files!"
-}
-
 # Build start
 export llvm_log="${DIR}/build-llvm-${release_tag}.log"
 jobs_total="$(($(nproc --all)*4))"
@@ -150,19 +127,23 @@ pushd "${DIR}/greenforce_clang" || exit 1
 bash "${DIR}"/readme.sh
 git add .
 git commit -m "[weekly][${release_tag}]: Pull greenforce clang update from commit ${llvm_hash}" -m "${commit_message}" --signoff
-git push -fu origin main
+git push "https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang" main -f
+
+if gh release view "${release_tag}"; then
+    kecho "Uploading build archive to '${release_tag}'..."
+    gh release upload --clobber "${release_tag}" "${release_path}" && {
+        kecho "Version ${release_tag} updated!"
+    }
+else
+    kecho "Creating release with tag '${release_tag}'..."
+    gh release create "${release_tag}" "${release_path}" -t "${release_date}" && {
+        kecho "Version ${release_tag} released!"
+    }
+fi
+
+git push "https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang" main -f
+kecho "push complete"
 popd || exit 1
-
-# Check whether the releases was pushed or not
-if [[ $(push_rtag) == "Tag already exists!" ]]; then
-    kecho "[Tags] Triggering the function once again..."
-    push_rtag || kecho "[Warn] Tag maybe already exist!"
-fi
-
-if [[ $(push_rfile) == "Failed to push files!" ]]; then
-    kecho "[File] Triggering the function once again..."
-    push_rfile || kerror "[Fatal] failed to push ${release_file} to git release!"
-fi
 
 MSG="<b>New Greenforce Clang Update!</b>
 

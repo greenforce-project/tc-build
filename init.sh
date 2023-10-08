@@ -24,19 +24,12 @@ case "${1}" in
     ;;
 esac
 
-# Download alternative GitHub Release tools
-curl -Lo "${DIR}/ghrelease_tools" https://github.com/fadlyas07/scripts/raw/master/github/github-release
-if [[ -f "${DIR}/ghrelease_tools" ]]; then
-    chmod +x "${DIR}/ghrelease_tools"
-else
-    kecho "Github Release tools not exist!"
-    exit 1
-fi
-
 # Setup git.config and git hooks for commit
 mkdir -p ~/.git/hooks
 git config --global user.name "${ghuser_name}"
 git config --global user.email "${ghuser_email}"
+git config --global http.postBuffer 524288000
+gh auth login --with-token <<< "${ghuser_token}"
 git config --global core.hooksPath ~/.git/hooks
 curl -Lo ~/.git/hooks/commit-msg https://review.lineageos.org/tools/hooks/commit-msg
 chmod u+x ~/.git/hooks/commit-msg
