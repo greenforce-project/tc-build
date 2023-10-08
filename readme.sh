@@ -2,10 +2,12 @@
 # ---- Clang Build Script ----
 # Copyright (C) 2023 fadlyas07 <mhmmdfdlyas@proton.me>
 
+# Inherit common function
 source "${DIR}"/function.sh
 
-kecho "Generating build release information..."
+rm -rf README.md latest.txt
 echo -e "[tag]\n${release_tag}" > latest.txt
+
 touch "${release_info}"
 {
     echo -e "[date]\n${release_date}\n"
@@ -17,10 +19,7 @@ touch "${release_info}"
     echo -e "[size]\n${release_size}\n"
     echo -e "[shasum]\n${release_shasum}"
 } > "${release_info}"
-kecho "done!"
-sleep 2
-kecho "Generating README.md..."
-[[ -e "${DIR}/README.md" ]] && rm -rf "${DIR}/README.md"
+
 touch "README.md"
 {
     echo -e "# Greenforce Clang\n"
@@ -61,11 +60,6 @@ touch "README.md"
     echo -e '- `LD_LIBRARY_PATH` does not need to be set because we set library load paths in the toolchain.'
     echo -e "- No separate GCC/binutils toolchains are necessary; all tools are bundled."
 } > "README.md"
+
 sed -i "s/Clangs/Clang's/g" README.md
 sed -i "s/dont/don't/g" README.md
-
-if [[ $(cat README.md) != "" ]]; then
-    kecho "done!"
-else
-    kerror "Generating README.md failed kindly check errors!"
-fi

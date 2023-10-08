@@ -5,7 +5,7 @@
 # Working dir
 export DIR="$(pwd)"
 
-# Inherit function from other file
+# Inherit common function
 source "${DIR}"/function.sh
 
 # Specify build type for script
@@ -24,7 +24,7 @@ case "${1}" in
     ;;
 esac
 
-# Setup git.config and git hooks for commit
+# Setup git.config and hooks
 mkdir -p ~/.git/hooks
 git config --global user.name "${ghuser_name}"
 git config --global user.email "${ghuser_email}"

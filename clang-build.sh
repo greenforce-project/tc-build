@@ -2,6 +2,7 @@
 # ---- Clang Build Script ----
 # Copyright (C) 2023 fadlyas07 <mhmmdfdlyas@proton.me>
 
+# Inherit common function
 source "${DIR}"/function.sh
 
 build_info "🔨 Greenforce Clang Build Started!
@@ -24,41 +25,43 @@ start_time="$(date +'%s')"
     --vendor-string "greenforce" \
     --quiet-cmake 2>&1 | tee "${llvm_log}"
 
-kecho "Checking if the final clang binary exists or not..."
+kecho "Checking the final clang binary..."
 for clang in "${DIR}"/install/bin/clang; do
     if ! [[ -f "${clang}" || -f "${DIR}/build/llvm/instrumented/profdata.prof" ]]; then
-        kerror "Building LLVM failed kindly check errors!"
-        telegram_file "${llvm_log}" "${tguser_chatid}" "LLVM error Log."
+        kerror "Building clang LLVM failed, kindly check errors!"
+        telegram_file "${llvm_log}" "${tguser_chatid}" "Build LLVM errors Log."
         exit 1
     else
         kecho "Building LLVM success!"
-        telegram_file "${llvm_log}" "${tguser_chatid}" "LLVM success Log."
+        telegram_file "${llvm_log}" "${tguser_chatid}" "Build LLVM success Log."
     fi
 done
 
 if [[ "${1}" == release ]]; then
 
-# Clone the binutils source from master branch
-if ! pushd "${DIR}/src/binutils-master"; then    # default is empty
-    kecho "Cloning binutils source..."
-    git clone -q -j64 --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${DIR}/src/binutils-master" --depth=1
-    kecho "done!"
-else
-    kecho "Binutils source exist! [$(pwd)]"
-    popd || exit 1
-fi
-
 # Build binutils
 build_info "Building binutils..."
 export binutils_log="${DIR}/build-binutils-${release_tag}.log"
+export binutils_path="${DIR}/src/binutils-master"
+
+# Clone the binutils source from master branch
+if ! pushd "${binutils_path}"; then
+    git clone -q -j64 --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1
+else
+    kecho "Clone the binutils source failed!"
+    kecho "Please check your server probably the source exist!"
+    kecho "Current dir: $(pwd)"
+    popd || exit 1
+fi
+
 ./build-binutils.py \
-    -B "${DIR}/src/binutils-master" \
+    -B "${binutils_path}" \
     -t arm aarch64 x86_64 \
     -m native \
     -i "${install_path}" 2>&1 | tee "${binutils_log}"
 
-kecho "Building binutils success!"
-telegram_file "${binutils_log}" "${tguser_chatid}" "Binutils success Log."
+kecho "Building Binutils success!"
+telegram_file "${binutils_log}" "${tguser_chatid}" "Build Binutils success Log."
 
 # Build end
 end_time="$(date +'%s')"
@@ -87,16 +90,16 @@ for bin in $(find "${install_path}" -mindepth 2 -maxdepth 3 -type f -exec file {
     patchelf --set-rpath "${install_path}/lib" "${bin}"
 done
 
-if ! pushd "${DIR}/greenforce_clang"; then       # default is empty
-    kecho "Cloning catalogue repository..."
+if ! pushd "${DIR}/greenforce_clang"; then
     git clone -q -j64 --single-branch -b main https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang --depth=1
-    kecho "done!"
 else
-    kecho "catalogue repository exist! [$(pwd)]"
+    kecho "Clone the catalogue repository failed!"
+    kecho "Please check your server probably the repository exist!"
+    kecho "Current dir: $(pwd)"
     popd || exit 1
 fi
 
-# GitHub release environment
+# Common push environment
 pushd "${DIR}/src/llvm-project" || exit 1
 if [[ -e hash_tracking ]] ; then
     source hash_tracking
@@ -133,7 +136,7 @@ Binutils version: ${binutils_version}
 LLVM commit: ${llvm_url}
 Release: https://github.com/greenforce-project/greenforce_clang/releases/tag/${release_tag}"
 
-# Push catalogue commit and release
+# Push commits and releases
 pushd "${DIR}/greenforce_clang" || exit 1
 bash "${DIR}"/readme.sh
 git add .
