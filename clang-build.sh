@@ -38,10 +38,21 @@ done
 
 if [[ "${1}" == release ]]; then
 
+# Clone the binutils source from master branch
+if ! pushd "${DIR}/src/binutils-master"; then    # default is empty
+    kecho "Cloning binutils source..."
+    git clone -q -j64 --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${DIR}/src/binutils-master" --depth=1
+    kecho "done!"
+else
+    kecho "Binutils source exist! [$(pwd)]"
+    popd || exit 1
+fi
+
 # Build binutils
 build_info "Building binutils..."
 export binutils_log="${DIR}/build-binutils-${release_tag}.log"
 ./build-binutils.py \
+    -B "${DIR}/src/binutils-master" \
     -t arm aarch64 x86_64 \
     -m native \
     -i "${install_path}" 2>&1 | tee "${binutils_log}"
