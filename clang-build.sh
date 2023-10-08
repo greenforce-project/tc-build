@@ -130,17 +130,18 @@ export release_size="$(du -sh ${release_path} | awk '{print $1}')"
 export distro_image="$(source /etc/os-release && echo ${PRETTY_NAME})"
 export glibc_version="$(ldd --version | head -n1 | grep -oE '[^ ]+$')"
 export dclang_version="$(clang --version | head -n1 | grep -oE '[^ ]+$')"
-export commit_message="Clang Version: ${short_clang}
-Binutils version: ${binutils_version}
-
-LLVM commit: ${llvm_url}
-Release: https://github.com/greenforce-project/greenforce_clang/releases/tag/${release_tag}"
 
 # Push commits and releases
 pushd "${DIR}/greenforce_clang" || exit 1
 bash "${DIR}"/readme.sh
 git add .
-git commit -m "[weekly][${release_tag}]: Pull greenforce clang update from commit ${llvm_hash}" -m "${commit_message}" --signoff
+git commit -m "[weekly][${release_tag}]: Pull update from commit ${short_hash}
+
+Clang Version: ${short_clang}
+Binutils version: ${binutils_version}
+
+LLVM commit: ${llvm_url}
+Release: https://github.com/greenforce-project/greenforce_clang/releases/tag/${release_tag}"  --signoff
 git push "https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang" main -f
 
 if gh release view "${release_tag}"; then
