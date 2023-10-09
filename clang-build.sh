@@ -14,16 +14,16 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
 jobs_total="$(($(nproc --all)*4))"
 start_time="$(date +'%s')"
 ./build-llvm.py ${build_flags} \
-    --build-type "Release" \
+    -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
+    -i "${install_path}" \
+    -p clang lld polly \
+    -s \
+    -t AArch64 ARM X86 \
     --build-stage1-only \
-    --defines LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
-    --install-folder "${install_path}" \
+    --build-type "Release" \
     --pgo llvm \
-    --projects clang lld polly \
-    --shallow-clone \
-    --targets ARM AArch64 X86 \
-    --vendor-string "greenforce" \
-    --quiet-cmake 2>&1 | tee "${llvm_log}"
+    --quiet-cmake \
+    --vendor-string "greenforce" 2>&1 | tee "${llvm_log}"
 
 kecho "Checking the final clang binary..."
 for clang in "${DIR}"/install/bin/clang; do
@@ -56,9 +56,9 @@ fi
 
 ./build-binutils.py \
     -B "${binutils_path}" \
-    -t arm aarch64 x86_64 \
+    -i "${install_path}" \
     -m native \
-    -i "${install_path}" 2>&1 | tee "${binutils_log}"
+    -t arm aarch64 x86_64 2>&1 | tee "${binutils_log}"
 
 kecho "Building Binutils success!"
 telegram_file "${binutils_log}" "${tguser_chatid}" "Build Binutils success Log."
