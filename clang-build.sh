@@ -11,7 +11,7 @@ Build Date: $(date +'%Y-%m-%d %H:%M')"
 
 # Build start
 export llvm_log="${DIR}/build-llvm-${release_tag}.log"
-jobs_total="$(($(nproc --all)*4))"
+jobs_total="$(nproc --all)"
 start_time="$(date +'%s')"
 ./build-llvm.py ${build_flags} \
     -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
@@ -46,7 +46,7 @@ export binutils_path="${DIR}/src/binutils-master"
 
 # Clone the binutils source from master branch
 if ! pushd "${binutils_path}"; then
-    git clone -j64 --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1
+    git clone -j"${jobs_total}" --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1
 else
     kecho "Clone the binutils source failed!"
     kecho "Please check your server probably the source exist!"
@@ -91,7 +91,7 @@ for bin in $(find "${install_path}" -mindepth 2 -maxdepth 3 -type f -exec file {
 done
 
 if ! pushd "${DIR}/greenforce_clang"; then
-    git clone -j64 --single-branch -b main https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang --depth=1
+    git clone -j"${jobs_total}" --single-branch -b main https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang --depth=1
 else
     kecho "Clone the catalogue repository failed!"
     kecho "Please check your server probably the repository exist!"
