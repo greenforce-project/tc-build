@@ -46,7 +46,7 @@ export binutils_path="${DIR}/src/binutils-master"
 
 # Clone the binutils source from master branch
 if ! pushd "${binutils_path}"; then
-    git clone -q -j64 --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1
+    git clone -j64 --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1
 else
     kecho "Clone the binutils source failed!"
     kecho "Please check your server probably the source exist!"
@@ -91,7 +91,7 @@ for bin in $(find "${install_path}" -mindepth 2 -maxdepth 3 -type f -exec file {
 done
 
 if ! pushd "${DIR}/greenforce_clang"; then
-    git clone -q -j64 --single-branch -b main https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang --depth=1
+    git clone -j64 --single-branch -b main https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang --depth=1
 else
     kecho "Clone the catalogue repository failed!"
     kecho "Please check your server probably the repository exist!"
