@@ -14,7 +14,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
 jobs_total="$(($(nproc --all)*4))"
 start_time="$(date +'%s')"
 ./build-llvm.py ${build_flags} \
-    -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS=-O3 CMAKE_CXX_FLAGS=-O3 CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
+    -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
     -i "${install_path}" \
     -p clang lld polly \
     -s \
