@@ -16,7 +16,7 @@ start_time="$(date +'%s')"
 ./build-llvm.py ${build_flags} \
     -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
     -i "${install_path}" \
-    -p clang lld polly \
+    -p clang compiler-rt lld polly \
     -s \
     -t AArch64 ARM X86 \
     --build-stage1-only \
