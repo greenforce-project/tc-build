@@ -37,6 +37,7 @@ build_info "Building clang LLVM..."
     -n \
     -t AArch64 ARM X86 \
     --build-stage1-only \
+    --build-target distribution \
     --build-type "Release" \
     --pgo llvm \
     --ref "${llvm_branch}" \
