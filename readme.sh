@@ -31,7 +31,7 @@ touch "README.md"
     echo -e "# Create a directory for the source files"
     echo -e "mkdir -p ~/toolchains/greenforce-clang"
     echo -e '```\n'
-    echo -e "Then to download & extract:\n"
+    echo -e "Then to download:\n"
     echo -e '```bash'
     echo -e "wget -c ${release_url} -O - | tar --use-compress-program=unzstd -xf - -C ~/toolchains/greenforce-clang\n"
     echo -e '```\n'
