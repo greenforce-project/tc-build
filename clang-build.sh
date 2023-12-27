@@ -22,6 +22,7 @@ start_time="$(date +'%s')"
     --build-stage1-only \
     --build-type "Release" \
     --pgo llvm \
+    --ref "${llvm_branch}" \
     --quiet-cmake \
     --vendor-string "greenforce" 2>&1 | tee "${llvm_log}"
 
@@ -42,11 +43,11 @@ if [[ "${1}" == release ]]; then
 # Build binutils
 build_info "Building binutils..."
 export binutils_log="${DIR}/build-binutils-${release_tag}.log"
-export binutils_path="${DIR}/src/binutils-master"
+export binutils_path="${DIR}/src/binutils-${binutils_branch}"
 
-# Clone the binutils source from master branch
+# Clone the binutils source from selective branch
 if ! pushd "${binutils_path}"; then
-    git clone -j"${jobs_total}" --single-branch -b master https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1
+    git clone -j"${jobs_total}" --single-branch -b "${binutils_branch}" https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1
 else
     kecho "Clone the binutils source failed!"
     kecho "Please check your server probably the source exist!"
