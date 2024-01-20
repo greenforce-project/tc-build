@@ -130,6 +130,7 @@ export dclang_version="$(clang --version | head -n1 | grep -oE '[^ ]+$')"
 # Push commits and releases
 pushd "${DIR}/greenforce_clang" || exit 1
 bash "${DIR}"/readme.sh
+echo "latest=${release_url}" > latest_link
 git add .
 git commit -m "[weekly][${release_tag}]: Pull update from commit ${short_hash}
 
