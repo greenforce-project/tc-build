@@ -30,12 +30,14 @@ git config --global user.name "${ghuser_name}"
 git config --global user.email "${ghuser_email}"
 git config --global http.postBuffer 524288000
 gh auth login --with-token <<< "${ghuser_token}"
+git config --global pull.rebase false
 git config --global core.hooksPath ~/.git/hooks
 curl -Lo ~/.git/hooks/commit-msg https://review.lineageos.org/tools/hooks/commit-msg
 chmod u+x ~/.git/hooks/commit-msg
 
 # Export common environment variable
 export PATH="/usr/bin/core_perl:${PATH}"
+export jobs_total="$(nproc --all)"
 export release_tag="$(date +'%d%m%Y')"     # "{date}{month}{year}" format
 export release_time="$(date +'%H%M')"      # HoursMinute
 export release_date="$(date +'%-d %B %Y')" # "Day Month Year" format

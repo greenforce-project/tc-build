@@ -5,19 +5,34 @@
 # Inherit common function
 source "${DIR}"/function.sh
 
+# Build start
 build_info "🔨 Greenforce Clang Build Started!
 Build Task: ${build_type}
 Build Date: $(date +'%Y-%m-%d %H:%M')"
 
-# Build start
+# HACK: Clone the LLVM source manually
+if ! pushd "${DIR}/src/llvm-project"; then
+    git clone -j"${jobs_total}" --single-branch -b "${llvm_branch}" https://github.com/llvm/llvm-project.git "${DIR}/src/llvm-project"
+else
+    kecho "Clone the LLVM source failed!"
+    kecho "Please check your server probably the source exist!"
+    kecho "Current dir: $(pwd)"
+    popd || exit 1
+fi
+# This merge changing "19.0.0git" to "19.0.0" in CLANG_VERSION
+pushd "${DIR}/src/llvm-project" || exit 1
+git fetch https://github.com/greenforce-project/llvm-project "${llvm_branch}"
+git merge FETCH_HEAD --no-commit
+popd
+
+# Build LLVM
 export llvm_log="${DIR}/build-llvm-${release_tag}.log"
-jobs_total="$(nproc --all)"
 start_time="$(date +'%s')"
 ./build-llvm.py ${build_flags} \
     -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
     -i "${install_path}" \
     -p clang compiler-rt lld polly \
-    -s \
+    -n \
     -t AArch64 ARM X86 \
     --build-stage1-only \
     --build-type "Release" \
