@@ -29,9 +29,9 @@ popd
 export llvm_log="${DIR}/build-llvm-${release_tag}.log"
 start_time="$(date +'%s')"
 ./build-llvm.py ${build_flags} \
-    -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} CMAKE_C_FLAGS='-march=native -mtune=native' CMAKE_CXX_FLAGS='-march=native -mtune=native' \
+    -D LLVM_PARALLEL_COMPILE_JOBS=${jobs_total} LLVM_PARALLEL_LINK_JOBS=${jobs_total} \
     -i "${install_path}" \
-    -p clang compiler-rt lld polly \
+    -p clang lld \
     -n \
     -t AArch64 ARM X86 \
     --build-stage1-only \
@@ -73,7 +73,6 @@ fi
 ./build-binutils.py \
     -B "${binutils_path}" \
     -i "${install_path}" \
-    -m native \
     -t arm aarch64 x86_64 2>&1 | tee "${binutils_log}"
 
 kecho "Building Binutils success!"
