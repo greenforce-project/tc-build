@@ -15,7 +15,7 @@ container:
 
 profile_task:
   name: Build LLVM (profile)
-  skip: "!changesInclude('datestamp')"
+  skip: "!changesInclude('build_scripts/DATESTAMP')"
   timeout_in: 120m
   only_if: $CIRRUS_BRANCH == 'main'
   script:
@@ -29,7 +29,7 @@ final_task:
   depends_on:
     - 'Build LLVM (profile)'
   name: Build LLVM (final)
-  skip: "!changesInclude('datestamp')"
+  skip: "!changesInclude('build_scripts/DATESTAMP')"
   timeout_in: 120m
   only_if: $CIRRUS_BRANCH == 'main'
   profdata_cache:

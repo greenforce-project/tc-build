@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# ---- Clang Build Script ----
-# Copyright (C) 2023 fadlyas07 <mhmmdfdlyas@proton.me>
+# ---- Clang Build Scripts ----
+# Copyright (C) 2023-2024 fadlyas07 <mhmmdfdlyas@proton.me>
 
-# Working dir
+# Working directory
 export DIR="$(pwd)"
 
 # Inherit common function
-source "${DIR}"/function.sh
+source "${DIR}"/build_scripts/helper.sh
 
-# Specify build type for script
+# Specify the build type for the script
 case "${1}" in
     ccache)
         export build_flags=
@@ -35,13 +35,16 @@ git config --global core.hooksPath ~/.git/hooks
 curl -Lo ~/.git/hooks/commit-msg https://review.lineageos.org/tools/hooks/commit-msg
 chmod u+x ~/.git/hooks/commit-msg
 
-# Export common environment variable
+# Export common environment variables
 export PATH="/usr/bin/core_perl:${PATH}"
 export jobs_total="$(nproc --all)"
 export release_tag="$(date +'%d%m%Y')"     # "{date}{month}{year}" format
 export release_time="$(date +'%H%M')"      # HoursMinute
 export release_date="$(date +'%-d %B %Y')" # "Day Month Year" format
 export install_path="${DIR}/install"
+export distro_image="$(source /etc/os-release && echo ${PRETTY_NAME})"
+export glibc_version="$(ldd --version | head -n1 | grep -oE '[^ ]+$')"
+export dclang_version="$(clang --version | head -n1 | grep -oE '[^ ]+$')"
 
-# Execute build scripts
-./clang-build.sh "${1}"
+# Execute the build scripts
+./build_scripts/build.sh "${1}"

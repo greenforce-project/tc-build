@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ---- Clang Build Script ----
-# Copyright (C) 2023 fadlyas07 <mhmmdfdlyas@proton.me>
+# ---- Clang Build Scripts ----
+# Copyright (C) 2023-2024 fadlyas07 <mhmmdfdlyas@proton.me>
 
 # Function to show an informational message
 function kecho() {
@@ -30,8 +30,7 @@ function telegram_file() {
     -F caption="${3}"
 }
 
-# Function to show an informational build both for terminal and telegram
+# Function to display informational build messages for both terminal and Telegram
 function build_info() {
-    MSG="${1}"
-    telegram_message "${MSG}" && kecho "${MSG}";
+    telegram_message "${1}" && kecho "${1}";
 }
