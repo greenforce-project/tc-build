@@ -120,7 +120,7 @@ if [[ "${1}" == release ]]; then
     export binutils_hash="$(git rev-parse --verify HEAD)"
     popd || exit 1
     export llvm_url="https://github.com/llvm/llvm-project/commit/${llvm_hash}"
-    export binutils_url="https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=${binutils_hash}"
+    export binutils_url="https://github.com/bminor/binutils-gdb/commit/${binutils_hash}"
     export binutils_version="$(ls ${DIR}/src/ | grep "^binutils-" | sed "s/binutils-//g")"
     export clang_version="$(${install_path}/bin/clang --version | head -n1)"
     export short_clang="$(echo ${clang_version} | cut -d' ' -f4)"
