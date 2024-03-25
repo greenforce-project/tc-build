@@ -75,7 +75,7 @@ if [[ "${1}" == release ]]; then
     ./build-binutils.py \
         -B "${binutils_path}" \
         -i "${install_path}" \
-        -t aarch64 x86_64 2>&1 | tee "${binutils_log}"
+        -t aarch64 2>&1 | tee "${binutils_log}"
 
     kecho "Building binutils success!"
     telegram_file "${binutils_log}" "${tguser_chatid}" "Here is the binutils success log."
