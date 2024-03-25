@@ -129,6 +129,7 @@ if [[ "${1}" == release ]]; then
     export release_file="greenforce-clang-${short_clang}-${release_tag}-${release_time}.tar.zst"
     export release_info="clang-${short_clang}-${release_tag}-${release_time}-info.txt"
     export release_url="https://github.com/greenforce-project/greenforce_clang/releases/download/${release_tag}/${release_file}"
+    export README_path="${DIR}/greenforce_clang/README.md"
 
     # Package the clang release file
     pushd "${install_path}" || exit 1
@@ -138,15 +139,6 @@ if [[ "${1}" == release ]]; then
     export release_path="${install_path}/${release_file}"
     export release_shasum="$(sha256sum ${release_path} | awk '{print $1}')"
     export release_size="$(du -sh ${release_path} | awk '{print $1}')"
-
-    touch /tmp/release_desc
-    {
-        echo "Clang Version: ${short_clang}"
-        echo "Binutils version: ${binutils_version}"
-        echo -e "LLD version: ${lld_version}\n"
-        echo "LLVM commit: ${llvm_url}"
-        echo "Binutils commit: ${binutils_url}"
-    } > /tmp/release_desc
 
     # Push the commits and releases
     pushd "${DIR}/greenforce_clang" || exit 1
@@ -173,22 +165,5 @@ if [[ "${1}" == release ]]; then
     git push "https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang" main -f
     kecho "Push complete!"
     popd || exit 1
-
-    MSG="<b>New Greenforce Clang update available!</b>
-
-    <b>Host system details</b>
-    Distro: <code>${distro_image}</code>
-    Glibc version: <code>${glibc_version}</code>
-    Clang version: <code>${dclang_version}</code>
-
-    <b>Toolchain details</b>
-    Clang version: <code>${short_clang}</code>
-    Binutils version: <code>${binutils_version}</code>
-    LLVM commit: <a href='${llvm_url}'>${lcommit_message}</a>
-    Binutils commit: <a href='${binutils_url}'>${bcommit_message}</a>
-    Build Date: <code>$(date +'%Y-%m-%d %H:%M')</code>
-    Build Tag: <code>${release_tag}</code>
-
-    <b>Build Release:</b> <a href='${release_url}'>${release_file}</a>"
-    telegram_message "${MSG}"
+    telegram_message "$(cat /tmp/telegram_post)"
 fi

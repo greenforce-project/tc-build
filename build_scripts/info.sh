@@ -7,13 +7,13 @@ source "${DIR}"/build_scripts/helper.sh
 
 # Remove existing files
 kecho "Removing existing files..."
-rm -rf README.md latest.txt
+rm -rf "${README_path}" latest.txt
 
 # Create latest.txt and populate it with release tag
 kecho "Creating latest.txt..."
 echo -e "[tag]\n${release_tag}" > latest.txt
 
-# Create release_info file and populate it with release information
+# Create release info file and populate it with release information
 kecho "Creating release_info file..."
 touch "${release_info}"
 {
@@ -27,9 +27,35 @@ touch "${release_info}"
     echo -e "[shasum]\n${release_shasum}"
 } > "${release_info}"
 
+touch /tmp/release_desc
+{
+    echo "Clang Version: ${short_clang}"
+    echo "Binutils version: ${binutils_version}"
+    echo -e "LLD version: ${lld_version}\n"
+    echo "LLVM commit: ${llvm_url}"
+    echo "Binutils commit: ${binutils_url}"
+} > /tmp/release_desc
+
+touch /tmp/telegram_post
+{
+    echo -e "<b>New Greenforce Clang update available!</b>\n"
+    echo "<b>Host system details</b>"
+    echo "Distro: <code>${distro_image}</code>"
+    echo "Glibc version: <code>${glibc_version}</code>"
+    echo -e "Clang version: <code>${dclang_version}</code>\n"
+    echo "<b>Toolchain details</b>"
+    echo "Clang version: <code>${short_clang}</code>"
+    echo "Binutils version: <code>${binutils_version}</code>"
+    echo "LLVM commit: <a href='${llvm_url}'>${lcommit_message}</a>"
+    echo "Binutils commit: <a href='${binutils_url}'>${bcommit_message}</a>"
+    echo "Build Date: <code>$(date +'%Y-%m-%d %H:%M')</code>"
+    echo -e "Build Tag: <code>${release_tag}</code>\n"
+    echo "<b>Build Release:</b> <a href='${release_url}'>${release_file}</a>"
+} > /tmp/telegram_post
+
 # Create README.md file and populate it with content
 kecho "Creating README.md..."
-touch "README.md"
+touch "${README_path}"
 {
     echo -e "# Greenforce Clang\n"
     echo -e "## Host compatibility\n"
@@ -61,14 +87,14 @@ touch "README.md"
     echo -e "Android kernels older than 4.14 will require patches for compiling with any Clang toolchain to work; those patches are out of the scope of this project. See [android-kernel-clang](https://github.com/nathanchance/android-kernel-clang) for more information.\n"
     echo -e "### Differences from other toolchains\n"
     echo -e "Greenforce Clang has been designed to be easy-to-use compared to other toolchains, such as [AOSP Clang](https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/). The differences are as follows:\n"
-    echo -e '- `CLANG_TRIPLE` does not need to be set because we don\'t use AOSP binutils.'
+    echo -e '- `CLANG_TRIPLE` does not need to be set because we dont use AOSP binutils.'
     echo -e '- `LD_LIBRARY_PATH` does not need to be set because we set library load paths in the toolchain.'
     echo -e "- No separate GCC/binutils toolchains are necessary; all tools are bundled."
-} > "README.md"
+} > "${README_path}"
 
 # Fixing typos and grammar
 kecho "Fixing typos and grammar in README.md..."
-sed -i "s/Clangs/Clang's/g" README.md
-sed -i "s/dont/don't/g" README.md
+sed -i "s/Clangs/Clang's/g" "${README_path}"
+sed -i "s/dont/don't/g" "${README_path}"
 
 kecho "Script execution completed successfully."
