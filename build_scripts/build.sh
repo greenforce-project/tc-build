@@ -139,12 +139,14 @@ if [[ "${1}" == release ]]; then
     export release_shasum="$(sha256sum ${release_path} | awk '{print $1}')"
     export release_size="$(du -sh ${release_path} | awk '{print $1}')"
 
-    echo "Clang Version: ${short_clang}
-    Binutils version: ${binutils_version}
-    LLD version: ${lld_version}
-
-    LLVM commit: ${llvm_url}
-    Binutils commit: ${binutils_url}" > /tmp/release_desc
+    touch /tmp/release_desc
+    {
+        echo "Clang Version: ${short_clang}"
+        echo "Binutils version: ${binutils_version}"
+        echo -e "LLD version: ${lld_version}\n"
+        echo "LLVM commit: ${llvm_url}"
+        echo "Binutils commit: ${binutils_url}"
+    } > /tmp/release_desc
 
     # Push the commits and releases
     pushd "${DIR}/greenforce_clang" || exit 1
@@ -152,8 +154,7 @@ if [[ "${1}" == release ]]; then
     echo "latest=${release_url}" > latest_link
     git add .
     git commit -s -m "[weekly]: Pull update from commit ${llvm_hash}" \
-    -m "Tag: ${release_tag}
-    Test: Build" \
+    -m "Tag: ${release_tag}" \
     -m "See the release files here https://github.com/greenforce-project/greenforce_clang/releases/tag/${release_tag}"
     git push "https://${ghuser_name}:${ghuser_token}@github.com/greenforce-project/greenforce_clang" main -f
 
