@@ -35,7 +35,7 @@ build_info "Building clang LLVM..."
     -i "${install_path}" \
     -p clang lld \
     -n \
-    -t AArch64 ARM X86 \
+    -t AArch64 X86 \
     --build-stage1-only \
     --build-target distribution \
     --build-type "Release" \
@@ -75,7 +75,7 @@ if [[ "${1}" == release ]]; then
     ./build-binutils.py \
         -B "${binutils_path}" \
         -i "${install_path}" \
-        -t arm aarch64 x86_64 2>&1 | tee "${binutils_log}"
+        -t aarch64 x86_64 2>&1 | tee "${binutils_log}"
 
     kecho "Building binutils success!"
     telegram_file "${binutils_log}" "${tguser_chatid}" "Here is the binutils success log."

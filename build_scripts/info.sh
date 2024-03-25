@@ -51,7 +51,6 @@ touch "README.md"
     echo -e 'For an AArch64 cross-compilation setup, you must set the following variables. Some of them can be environment variables, but some must be passed directly to `make` as a command-line argument. It is recommended to pass **all** of them as `make` arguments to avoid confusing errors:\n'
     echo -e '- `CC=clang` (must be passed directly to `make`)'
     echo -e '- `CROSS_COMPILE=aarch64-linux-gnu-`'
-    echo -e '- If your kernel has a 32-bit vDSO: `CROSS_COMPILE_ARM32=arm-linux-gnueabi-`\n'
     echo -e 'Optionally, you can also choose to use as many LLVM tools as possible to reduce reliance on binutils. All of these must be passed directly to `make`:\n'
     echo -e '- `AR=llvm-ar`'
     echo -e '- `NM=llvm-nm`'
@@ -60,7 +59,6 @@ touch "README.md"
     echo -e '- `STRIP=llvm-strip`\n'
     echo -e 'Note, however, that additional kernel patches may be required for these LLVM tools to work. It is also possible to replace the binutils linkers (`lf.bfd` and `ld.gold`) with `lld` and use Clangs integrated assembler for inline assembly in C code, but that will require many more kernel patches and it is currently impossible to use the integrated assembler for *all* assembly code in the kernel.\n'
     echo -e "Android kernels older than 4.14 will require patches for compiling with any Clang toolchain to work; those patches are out of the scope of this project. See [android-kernel-clang](https://github.com/nathanchance/android-kernel-clang) for more information.\n"
-    echo -e 'Android kernels 4.19 and newer use the upstream variable `CROSS_COMPILE_COMPAT`. When building these kernels, replace `CROSS_COMPILE_ARM32` in your commands and scripts with `CROSS_COMPILE_COMPAT`.\n'
     echo -e "### Differences from other toolchains\n"
     echo -e "Greenforce Clang has been designed to be easy-to-use compared to other toolchains, such as [AOSP Clang](https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/). The differences are as follows:\n"
     echo -e '- `CLANG_TRIPLE` does not need to be set because we don\'t use AOSP binutils.'
