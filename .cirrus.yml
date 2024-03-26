@@ -6,7 +6,7 @@ env:
   tguser_chatid: ENCRYPTED[542366e5d66de493bff6a8a0ca6ada9f1fde424b682c087f3cf94cf1488eb11dd0d5dab3a75b063c69dd2159a7818af6]
   tgbot_token: ENCRYPTED[96451455796fed5dcb948d366ab7877cc5a3f7c096737658460de3fcade4b699758559ee89339811283f4132e40a2817]
   llvm_branch: main
-  binutils_branch: master
+  binutils_branch: binutils-2_35-branch
 
 container:
   image: mhmmdfdlyas/dockerfile:t-ubuntu

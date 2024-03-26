@@ -58,7 +58,7 @@ done
 
 if [[ "${1}" == release ]]; then
     # Clone the binutils repository from the selected branch
-    export binutils_path="${DIR}/src/binutils-${binutils_branch}"
+    export binutils_path="${DIR}/src/${binutils_branch}"
     if ! pushd "${binutils_path}"; then
         git clone -j"${jobs_total}" --single-branch -b "${binutils_branch}" https://sourceware.org/git/binutils-gdb.git "${binutils_path}" --depth=1 || {
             kecho "Failed to clone the binutils repository!"
