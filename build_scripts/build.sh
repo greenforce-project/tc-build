@@ -12,7 +12,7 @@ Build Date: $(date +'%Y-%m-%d %H:%M')"
 
 # HACK: Manually clone the LLVM project repository for edit
 if ! pushd "${DIR}/src/llvm-project"; then
-    git clone -j"${jobs_total}" --single-branch -b "${llvm_branch}" https://github.com/llvm/llvm-project.git "${DIR}/src/llvm-project" || {
+    git clone -j"${jobs_total}" --depth=1 --single-branch -b "${llvm_branch}" https://github.com/llvm/llvm-project.git "${DIR}/src/llvm-project" || {
         kecho "Failed to clone the LLVM project repository!"
         kecho "Please check your server; it's likely that the repository exists."
         kecho ""
@@ -23,8 +23,9 @@ fi
 
 # This merge changes '19.0.0git' to '19.0.0' in CLANG_VERSION
 pushd "${DIR}/src/llvm-project" || exit 1
-git fetch https://github.com/greenforce-project/llvm-project "${llvm_branch}" || exit 1
-git merge FETCH_HEAD --no-commit || exit 1
+wget -O merge1.patch https://github.com/greenforce-project/llvm-project/commit/f94eab98e5139d56d28ec37a1d6cab67abc51dd8.patch && \
+wget -O merge2.patch https://github.com/greenforce-project/llvm-project/commit/4c7a3e935248b7f3a64b459148861ad5dcadbf17.patch && \
+git apply merge*.patch || exit 1
 popd || exit 1
 
 # Build LLVM
