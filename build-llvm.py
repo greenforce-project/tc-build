@@ -38,7 +38,6 @@ DEFAULT_KERNEL_FOR_PGO = (6, 19, 0)
 
 parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
 clone_options = parser.add_mutually_exclusive_group()
-opt_options = parser.add_mutually_exclusive_group()
 
 parser.add_argument(
     '--assertions',
@@ -125,7 +124,7 @@ parser.add_argument(
                     '''),
     action='store_true',
 )
-opt_options.add_argument(
+parser.add_argument(
     '--build-stage1-only',
     help=textwrap.dedent('''\
                     By default, the script does a multi-stage build: it builds a more lightweight version of
@@ -204,6 +203,15 @@ parser.add_argument(
                     '''),
     type=str,
     choices=VALID_DISTRIBUTION_PROFILES,
+)
+parser.add_argument(
+    '--final',
+    help=textwrap.dedent('''\
+                    By default final build step is skipped.
+                    Enable this option to enable final build.
+
+                    '''),
+    action='store_true',
 )
 parser.add_argument(
     '-f',
@@ -346,7 +354,7 @@ parser.add_argument(
                     '''),
     nargs='+',
 )
-opt_options.add_argument(
+parser.add_argument(
     '--pgo',
     metavar='PGO_BENCHMARK',
     help=textwrap.dedent('''\
@@ -674,17 +682,22 @@ if args.pgo:
         instrumented = LLVMInstrumentedBuilder()
     else:
         instrumented = LLVMSlimInstrumentedBuilder()
+    instrumented.folders.build = Path(build_folder, 'instrumented')
+
+if args.pgo and not args.final:
     instrumented.build_targets = ['all' if args.full_toolchain else 'distribution']
     instrumented.cmake_defines.update(common_cmake_defines)
     # We run the tests on the instrumented stage if the LLVM benchmark was enabled
     instrumented.check_targets = args.check_targets if 'llvm' in args.pgo else None
-    instrumented.folders.build = Path(build_folder, 'instrumented')
     instrumented.folders.source = llvm_folder
     instrumented.projects = final.projects
     instrumented.quiet_cmake = args.quiet_cmake
     instrumented.show_commands = args.show_build_commands
     instrumented.targets = final.targets
-    instrumented.tools = StageTools(Path(bootstrap.folders.build, 'bin'))
+    if args.build_stage1_only:
+        instrumented.tools = host_tools
+    else:
+        instrumented.tools = StageTools(Path(bootstrap.folders.build, 'bin'))
 
     tc_build.utils.print_header('Building LLVM (instrumented)')
     instrumented.configure()
@@ -774,51 +787,54 @@ if args.pgo:
     instrumented.generate_profdata()
 
 # Final build
-final.build_targets = args.build_targets
-final.check_targets = args.check_targets
-final.cmake_defines.update(common_cmake_defines)
-if args.distribution_profile:
-    final.distribution_profile = args.distribution_profile
-final.folders.build = Path(build_folder, 'final')
-final.folders.install = Path(args.install_folder).resolve() if args.install_folder else None
-final.install_targets = args.install_targets
-final.quiet_cmake = args.quiet_cmake
-final.show_commands = args.show_build_commands
+if args.final:
+    final.build_targets = args.build_targets
+    final.check_targets = args.check_targets
+    final.cmake_defines.update(common_cmake_defines)
+    if args.distribution_profile:
+        final.distribution_profile = args.distribution_profile
+    final.folders.build = Path(build_folder, 'final')
+    final.folders.install = Path(args.install_folder).resolve() if args.install_folder else None
+    final.install_targets = args.install_targets
+    final.quiet_cmake = args.quiet_cmake
+    final.show_commands = args.show_build_commands
 
-if args.lto:
-    final.cmake_defines['LLVM_ENABLE_LTO'] = args.lto.capitalize()
-if args.pgo:
-    final.cmake_defines['LLVM_PROFDATA_FILE'] = Path(instrumented.folders.build, 'profdata.prof')
+    if args.lto:
+        final.cmake_defines['LLVM_ENABLE_LTO'] = args.lto.capitalize()
+    if args.pgo:
+        final.cmake_defines['LLVM_PROFDATA_FILE'] = Path(instrumented.folders.build, 'profdata.prof')
 
-if use_bootstrap:
-    final.tools = StageTools(Path(bootstrap.folders.build, 'bin'))
-else:
-    # If we skipped bootstrapping, we need to check the dependencies now
-    # and pass along certain user options
-    final.check_dependencies()
-    final.ccache = not args.no_ccache
-    final.tools = host_tools
+    if use_bootstrap:
+        final.tools = StageTools(Path(bootstrap.folders.build, 'bin'))
+    else:
+        # If we skipped bootstrapping, we need to check the dependencies now
+        # and pass along certain user options
+        final.check_dependencies()
+        final.ccache = not args.no_ccache
+        final.tools = host_tools
 
-    # If the user requested BOLT but did not specify it in their projects nor
-    # bootstrapped, we need to enable it to get the tools we need.
+        # If the user requested BOLT but did not specify it in their projects nor
+        # bootstrapped, we need to enable it to get the tools we need.
+        if args.bolt:
+            if not ('all' in final.projects or 'bolt' in final.projects):
+                final.projects.append('bolt')
+            final.tools.llvm_bolt = Path(final.folders.build, 'bin/llvm-bolt')
+            final.tools.merge_fdata = Path(final.folders.build, 'bin/merge-fdata')
+            final.tools.perf2bolt = Path(final.folders.build, 'bin/perf2bolt')
+
     if args.bolt:
-        if not ('all' in final.projects or 'bolt' in final.projects):
-            final.projects.append('bolt')
-        final.tools.llvm_bolt = Path(final.folders.build, 'bin/llvm-bolt')
-        final.tools.merge_fdata = Path(final.folders.build, 'bin/merge-fdata')
-        final.tools.perf2bolt = Path(final.folders.build, 'bin/perf2bolt')
+        final.bolt = True
+        final.bolt_builder = LLVMKernelBuilder()
+        final.bolt_builder.folders.build = Path(build_folder, 'linux')
+        final.bolt_builder.folders.source = lsm.location
+        llvm_targets = [final.host_target()] if final.host_target_is_enabled() else final.targets[0:1]
+        final.bolt_builder.matrix['defconfig'] = llvm_targets
 
-if args.bolt:
-    final.bolt = True
-    final.bolt_builder = LLVMKernelBuilder()
-    final.bolt_builder.folders.build = Path(build_folder, 'linux')
-    final.bolt_builder.folders.source = lsm.location
-    llvm_targets = [final.host_target()] if final.host_target_is_enabled() else final.targets[0:1]
-    final.bolt_builder.matrix['defconfig'] = llvm_targets
-
-tc_build.utils.print_header('Building LLVM (final)')
-final.configure()
-final.build()
-final.show_install_info()
+    tc_build.utils.print_header('Building LLVM (final)')
+    final.configure()
+    final.build()
+    final.show_install_info()
+else:
+    tc_build.utils.print_header('Skipping final build')
 
 print(f"Script duration: {tc_build.utils.get_duration(script_start)}")
