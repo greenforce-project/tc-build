@@ -5,6 +5,7 @@
 # Build LLVM
 export llvm_log="${DIR}/build-llvm-${release_tag}.log"
 ./build-llvm.py ${build_flags} \
+    --bolt \
     --defines LLVM_PARALLEL_COMPILE_JOBS="${cpu_core}" LLVM_PARALLEL_LINK_JOBS="${cpu_core}" \
     --build-stage1-only \
     --build-target distribution \
