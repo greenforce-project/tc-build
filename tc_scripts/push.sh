@@ -43,13 +43,10 @@ pushd "${install_path}" || exit 1
 export clang_version="$(bin/clang --version | head -n1)"
 export short_clang="$(echo ${clang_version} | cut -d' ' -f4)"
 export lld_version="$(bin/ld.lld --version | head -n1)"
-export release_file="greenforce-clang-${short_clang}-${release_tag}.tar"
-tar -czf "${release_file}.gz" --exclude='*.tar.xz' ./*
-tar -cJf "${release_file}.xz" --exclude='*.tar.gz' ./*
-export release_shasumg="$(sha256sum "${release_file}.gz" | awk '{print $1}')"
-export release_shasumx="$(sha256sum "${release_file}.xz" | awk '{print $1}')"
-export release_sizeg="$(du -sh "${release_file}.gz" | awk '{print $1}')b"
-export release_sizex="$(du -sh "${release_file}.xz" | awk '{print $1}')b"
+export release_file="greenforce-clang-${short_clang}-${release_tag}.tar.gz"
+tar -czf "${release_file}" --exclude='*.tar.*' ./*
+export release_shasum="$(sha256sum ${release_file} | awk '{print $1}')"
+export release_size="$(du -sh ${release_file} | awk '{print $1}')b"
 popd || exit 1
 
 # Push the commits and releases
@@ -60,7 +57,7 @@ git commit -s -m "$(cat /tmp/commit_msg)"
 git push "https://${ghuser_name}:${GITHUB_TOKEN}@github.com/greenforce-project/greenforce_clang" main -f
 
 if gh release view "${release_tag}"; then
-    for release_file in "${install_path}"/${release_file}*; do
+    for release_file in "${install_path}/${release_file}"; do
         if [[ -e "${release_file}" ]]; then
             gh release upload --clobber "${release_tag}" "${release_file}" &&
                 {
@@ -70,7 +67,7 @@ if gh release view "${release_tag}"; then
     done
 else
     gh release create "${release_tag}" -t "${release_date}";
-    for release_file in "${install_path}"/${release_file}*; do
+    for release_file in "${install_path}/${release_file}"; do
         if [[ -e "${release_file}" ]]; then
             gh release upload "${release_tag}" "${release_file}" &&
                 {

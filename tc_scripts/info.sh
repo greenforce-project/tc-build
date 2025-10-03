@@ -12,12 +12,9 @@ touch "clang_notes.txt"
     echo -e "[llvm-commit]\n${llvm_url}\n"
     echo -e "[llvm-commit-msg]\n${lcommit_message}\n"
     echo -e "[host-glibc]\n${glibc_version}\n"
-    echo -e "[size-gzip]\n${release_sizeg}\n"
-    echo -e "[size-xz]\n${release_sizex}\n"
-    echo -e "[link-rel-gzip]\n${release_url}.gz\n"
-    echo -e "[link-rel-xz]\n${release_url}.xz\n"
-    echo -e "[shasum-gzip]\n${release_shasumg}\n"
-    echo -e "[shasum-xz]\n${release_shasumx}"
+    echo -e "[size]\n${release_size}\n"
+    echo -e "[link-rel]\n${release_url}\n"
+    echo -e "[shasum]\n${release_shasum}"
 } >"clang_notes.txt"
 
 touch /tmp/commit_msg
@@ -31,6 +28,5 @@ touch /tmp/commit_msg
 touch get_latest_url.sh
 {
     echo -e "#!/usr/bin/env bash\n"
-    echo "LATEST_URL_GZ=${release_url}.gz"
-    echo "LATEST_URL_XZ=${release_url}.xz"
+    echo "LATEST_URL=${release_url}"
 } >get_latest_url.sh
