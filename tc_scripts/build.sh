@@ -16,7 +16,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
     --lto thin \
     --pgo llvm \
     --quiet-cmake \
-    --targets ARM AArch64 X86 \
+    --targets ARM AArch64 \
     --vendor-string "Gf" 2>&1 | tee "${llvm_log}"
 
 for clang in "${install_path}"/bin/clang; do
