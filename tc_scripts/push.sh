@@ -43,7 +43,7 @@ pushd "${install_path}" || exit 1
 export clang_version="$(bin/clang --version | head -n1)"
 export short_clang="$(echo ${clang_version} | cut -d' ' -f4)"
 export lld_version="$(bin/ld.lld --version | head -n1)"
-export release_file="greenforce-clang-${short_clang}-${release_tag}.tar.gz"
+export release_file="gf-clang-${short_clang}-${release_tag}.tar.gz"
 tar -czf "${release_file}" --exclude='*.tar.*' ./*
 export release_shasum="$(sha256sum ${release_file} | awk '{print $1}')"
 export release_size="$(du -sh ${release_file} | awk '{print $1}')b"

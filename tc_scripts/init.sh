@@ -24,7 +24,7 @@ chmod u+x ~/.git/hooks/commit-msg
 # Export common environment variables
 export PATH="/usr/bin/core_perl:${PATH}"
 export cpu_core="$(nproc --all)"
-export release_tag="$(date +'%d%m%Y')"     # "{date}{month}{year}" format
+export release_tag="$(date +'%Y%m%d')"     # "{year}{month}{date}" format
 export release_date="$(date +'%-d %B %Y')" # "Day Month Year" format
 export install_path="${DIR}/install"
 export glibc_version="$(ldd --version | head -n1 | grep -oE '[^ ]+$')"
