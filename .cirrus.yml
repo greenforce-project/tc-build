@@ -1,0 +1,51 @@
+env:
+  TZ: Asia/Jakarta
+  ghuser_name: ENCRYPTED[0b885904a60ef203984da3dcd0e21575fc35016ad9082e2f8d6f87a8760e8e41107d5559a3920d1929e8fffa1ac7f3a6]
+  ghuser_email: ENCRYPTED[6299a5f244ccc24ec4f6ae7fff7c4138fdf9a260c0741542cd5e95df4ee10fd1be7459a7cf9dfc3e0b02a5accaf2c5fc]
+  GITHUB_TOKEN: ENCRYPTED[f7b6950720285a315179075b3dcead57fd5c9be3c90534bcc28416bd46e3befe5e54b7782bf6051dc13738a6a2576f83]
+  llvm_url: https://github.com/llvm/llvm-project
+
+container:
+  image: mhmmdfdlyas/dockerfile:t-ubuntu
+  cpu: 8
+  memory: 32G
+
+cloning_task:
+  name: Cloning Project (llvm source)
+  skip: "!changesInclude('build-datestamp')"
+  timeout_in: 120m
+  only_if: $CIRRUS_BRANCH == 'main'
+  script:
+    - git clone --single-branch "${llvm_url}" -b main src/llvm-project --depth=1
+  profdata_cache:
+    folder: src/llvm-project
+    fingerprint_key: $CIRRUS_BUILD_ID
+
+profile_task:
+  depends_on:
+    - 'Cloning Project (llvm source)'
+  name: Build LLVM (profile)
+  skip: "!changesInclude('build-datestamp')"
+  timeout_in: 120m
+  only_if: $CIRRUS_BRANCH == 'main'
+  profdata_cache:
+    folder: build/llvm/instrumented
+    folder: src/llvm-project
+    fingerprint_key: $CIRRUS_BUILD_ID
+  script:
+    - ./tc_scripts/init.sh profile
+    - find build/llvm/instrumented -type f ! -name 'profdata.prof' -delete
+
+final_task:
+  depends_on:
+    - 'Build LLVM (profile)'
+  name: Build LLVM (final)
+  skip: "!changesInclude('build-datestamp')"
+  timeout_in: 120m
+  only_if: $CIRRUS_BRANCH == 'main'
+  profdata_cache:
+    folder: build/llvm/instrumented
+    folder: src/llvm-project
+    fingerprint_key: $CIRRUS_BUILD_ID
+  script:
+    - ./tc_scripts/init.sh final
