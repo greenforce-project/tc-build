@@ -22,10 +22,10 @@ except ImportError:
     BOOL_ARGS = {'action': 'store_true'}
 
 # This is a known good revision of LLVM for building the kernel
-GOOD_REVISION = '3c0f7b184d265281dfcd4fab73348bc0e72c9902'
+GOOD_REVISION = '81c5d468cf00d6e41112fba6c89d6c40013bcbda'
 
 # The version of the Linux kernel that the script downloads if necessary
-DEFAULT_KERNEL_FOR_PGO = (6, 17, 0)
+DEFAULT_KERNEL_FOR_PGO = (6, 18, 0)
 
 parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
 clone_options = parser.add_mutually_exclusive_group()
@@ -240,6 +240,14 @@ parser.add_argument('--lto',
                     '''),
                     type=str,
                     choices=['thin', 'full'])
+parser.add_argument('-m',
+                    '--multicall',
+                    help=textwrap.dedent('''\
+                    Build LLVM as a multicall binary via the LLVM_TOOL_LLVM_DRIVER_BUILD CMake option.
+                    This results in a much smaller installation on disk.
+
+                    '''),
+                    action='store_true')
 parser.add_argument('-n',
                     '--no-update',
                     help=textwrap.dedent('''\
@@ -539,6 +547,8 @@ if args.assertions:
     common_cmake_defines['LLVM_ENABLE_ASSERTIONS'] = 'ON'
 if args.vendor_string:
     common_cmake_defines['CLANG_VENDOR'] = args.vendor_string
+if args.multicall:
+    common_cmake_defines['LLVM_TOOL_LLVM_DRIVER_BUILD'] = 'ON'
 if args.defines:
     defines = dict(define.split('=', 1) for define in args.defines)
     common_cmake_defines.update(defines)
