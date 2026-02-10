@@ -13,6 +13,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
     --projects clang lld polly \
     --llvm-folder "${DIR}/src/llvm-project" \
     --lto thin \
+    --multicall \
     --pgo kernel-defconfig \
     --quiet-cmake \
     --targets ARM AArch64 X86 \
