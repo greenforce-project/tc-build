@@ -12,7 +12,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
     --install-target distribution \
     --projects clang lld polly \
     --llvm-folder "${DIR}/src/llvm-project" \
-    --lto thin \
+    --lto full \
     --multicall \
     --pgo kernel-defconfig \
     --quiet-cmake \
