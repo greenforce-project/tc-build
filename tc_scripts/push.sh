@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---- Clang Build Scripts ----
-# Copyright (C) 2023-2025 fadlyas07 <mhmmdfdlyas@proton.me>
+# Copyright (C) 2023-2026 fadlyas07 <mhmmdfdlyas@proton.me>
 
 # Remove unused products
 rm -rf "${install_path}/include" "${install_path}/lib/cmake"
@@ -23,12 +23,11 @@ done
 
 # Clone the catalogue repository
 if ! pushd "${DIR}/greenforce_clang"; then
-    git clone --single-branch -b main "https://${ghuser_name}:${GITHUB_TOKEN}@github.com/greenforce-project/greenforce_clang" --depth=1 ||
-        {
-            echo "Failed to clone the catalogue repository!"
-            echo "Please check your server; it's likely that the repository exists."
-            exit 1
-        }
+    git clone --single-branch -b main "https://${ghuser_name}:${GITHUB_TOKEN}@github.com/greenforce-project/greenforce_clang" --depth=1 || {
+        echo "Failed to clone the catalogue repository!"
+        echo "Please check your server; it's likely that the repository exists."
+        exit 1
+    }
 fi
 
 # GitHub push environment
@@ -59,20 +58,18 @@ git push "https://${ghuser_name}:${GITHUB_TOKEN}@github.com/greenforce-project/g
 if gh release view "${release_tag}"; then
     for release_file in "${install_path}/${release_file}"; do
         if [[ -e "${release_file}" ]]; then
-            gh release upload --clobber "${release_tag}" "${release_file}" &&
-                {
-                    echo "Version ${release_tag} updated!"
-                }
+            gh release upload --clobber "${release_tag}" "${release_file}" && {
+                echo "Version ${release_tag} updated!"
+            }
         fi
     done
 else
     gh release create "${release_tag}" -t "${release_date}";
     for release_file in "${install_path}/${release_file}"; do
         if [[ -e "${release_file}" ]]; then
-            gh release upload "${release_tag}" "${release_file}" &&
-                {
-                    echo "Version ${release_tag} released!"
-                }
+            gh release upload "${release_tag}" "${release_file}" && {
+                echo "Version ${release_tag} released!"
+            }
         fi
     done
 fi
