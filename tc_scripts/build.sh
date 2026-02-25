@@ -11,7 +11,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
   --vendor-string "Android (Gf's C Compiler, LLVM-based)" \
   --defines LLVM_PARALLEL_COMPILE_JOBS="${cpu_core}" LLVM_PARALLEL_LINK_JOBS="${cpu_core}" \
   --pgo kernel-defconfig \
-  --lto thin \
+  --lto full \
   --bolt \
   --multicall \
   --build-stage1-only \
