@@ -12,6 +12,7 @@ container:
 
 cloning_task:
   name: Cloning Project (llvm source)
+  skip: "!changesInclude('build-datestamp')"
   timeout_in: 120m
   only_if: $CIRRUS_BRANCH == 'main'
   script:
@@ -24,6 +25,7 @@ profile_task:
   depends_on:
     - 'Cloning Project (llvm source)'
   name: Build LLVM (profile)
+  skip: "!changesInclude('build-datestamp')"
   timeout_in: 120m
   only_if: $CIRRUS_BRANCH == 'main'
   profdata_cache:
@@ -38,6 +40,7 @@ final_task:
   depends_on:
     - 'Build LLVM (profile)'
   name: Build LLVM (final)
+  skip: "!changesInclude('build-datestamp')"
   timeout_in: 120m
   only_if: $CIRRUS_BRANCH == 'main'
   profdata_cache:
