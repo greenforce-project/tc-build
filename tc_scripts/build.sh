@@ -9,7 +9,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
   --targets ARM AArch64 X86 \
   --projects clang lld polly \
   --vendor-string "Android (Gf's C Compiler, LLVM-based)" \
-  --defines LLVM_PARALLEL_COMPILE_JOBS="${cpu_core}" LLVM_PARALLEL_LINK_JOBS="${cpu_core}" \
+  --defines LLVM_PARALLEL_COMPILE_JOBS="${cpu_core}" LLVM_PARALLEL_LINK_JOBS="${cpu_core}" CMAKE_C_FLAGS="-g0 -O3" CMAKE_CXX_FLAGS="-g0 -O3" \
   --pgo kernel-defconfig \
   --lto full \
   --bolt \
