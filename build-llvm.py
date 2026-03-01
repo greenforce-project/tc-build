@@ -9,7 +9,7 @@ import time
 
 import tc_build.utils
 
-from tc_build.llvm import LLVMBootstrapBuilder, LLVMBuilder, LLVMInstrumentedBuilder, LLVMSlimBuilder, LLVMSlimInstrumentedBuilder, LLVMSourceManager
+from tc_build.llvm import LLVMBootstrapBuilder, LLVMBuilder, LLVMInstrumentedBuilder, LLVMSlimBuilder, LLVMSlimInstrumentedBuilder, LLVMSourceManager, VALID_DISTRIBUTION_PROFILES
 from tc_build.kernel import KernelBuilder, LinuxSourceManager, LLVMKernelBuilder
 from tc_build.tools import HostTools, StageTools
 
@@ -162,6 +162,28 @@ parser.add_argument('--final',
                     By default final build step is skipped. Enable this option to enable final build
                     '''),
                     action='store_true')
+parser.add_argument('--distribution-profile',
+                    help=textwrap.dedent('''\
+                    Smartly set value of LLVM_DISTRIBUTION_COMPONENTS for final build stage. Use in
+                    combination with
+
+                            --build-targets distribution
+                            --install-targets distribution
+
+                    to generate a smaller toolchain installation.
+
+                    Accepts the following values:
+
+                        none      - do not set LLVM_DISTRIBUTION_COMPONENTS at all
+                        bootstrap - components needed to build LLVM itself
+                        kernel    - components needed to build the Linux kernel
+                        rust      - components needed to build the Rust toolchain via build-rust.py
+
+                    The default is 'none' when '--full-toolchain' is enabled, 'kernel' if not.
+
+                    '''),
+                    type=str,
+                    choices=VALID_DISTRIBUTION_PROFILES)
 parser.add_argument('-f',
                     '--full-toolchain',
                     help=textwrap.dedent('''\
@@ -205,7 +227,7 @@ parser.add_argument('-l',
                     By default, the script will clone the llvm-project into the tc-build repo. If you have
                     another LLVM checkout that you would like to work out of, pass it to this parameter.
                     This can either be an absolute or relative path. Implies '--no-update'. When this
-                    option is supplied, '--ref' and '--use-good-revison' do nothing, as the script does
+                    option is supplied, '--ref' and '--use-good-revision' do nothing, as the script does
                     not manipulate a repository it does not own.
 
                     '''),
@@ -691,6 +713,8 @@ if args.final:
     final.build_targets = args.build_targets
     final.check_targets = args.check_targets
     final.cmake_defines.update(common_cmake_defines)
+    if args.distribution_profile:
+        final.distribution_profile = args.distribution_profile
     final.folders.build = Path(build_folder, 'final')
     final.folders.install = Path(args.install_folder).resolve() if args.install_folder else None
     final.install_targets = args.install_targets
