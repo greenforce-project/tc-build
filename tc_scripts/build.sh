@@ -8,7 +8,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
   --llvm-folder "${DIR}/src/llvm-project" \
   --targets ARM AArch64 X86 \
   --projects clang lld polly \
-  --vendor-string "Android (Gf's C Compiler, +pgo, +bolt, +thinLTO, LLVM-based)" \
+  --vendor-string "Android (Gf's C Compiler, LLVM-based)" \
   --defines LLVM_PARALLEL_COMPILE_JOBS="${cpu_core}" LLVM_PARALLEL_LINK_JOBS="${cpu_core}" \
   --pgo kernel-defconfig \
   --lto thin \
