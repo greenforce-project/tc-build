@@ -10,7 +10,7 @@ for package in "${DIR}"/src/*.tar.xz; do
 done
 
 # Strip remaining products
-find "${install_path}" -type f -exec file {} \; | grep 'not stripped' | awk '{print $1}' | while read -r f; do
+find "${install_path}" -type f -exec file {} \; | grep 'not stripped' | cut -d: -f1 | while read -r f; do
     strip -s "${f}"
 done
 
