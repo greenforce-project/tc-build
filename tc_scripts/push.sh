@@ -22,7 +22,7 @@ find "${install_path}" -mindepth 2 -maxdepth 3 -type f -exec file {} \; | grep '
 done
 
 # Clone the catalogue repository
-if ! pushd "${DIR}/greenforce_clang"; then
+if ! pushd "${DIR}/greenforce_clang" > /dev/null 2>&1; then
     git clone --single-branch -b main "https://${ghuser_name}:${GITHUB_TOKEN}@github.com/greenforce-project/greenforce_clang" --depth=1 ||
         {
             echo "Failed to clone the catalogue repository!"
