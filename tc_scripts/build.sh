@@ -17,7 +17,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
     --lto thin \
     --multicall \
     --quiet-cmake \
-    --targets X86 \
+    --targets AArch64 ARM X86 \
     --vendor-string "Gf" \
     2>&1 | tee "${llvm_log}"
 
