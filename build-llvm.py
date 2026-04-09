@@ -637,7 +637,6 @@ if args.assertions:
     common_cmake_defines['LLVM_ENABLE_ASSERTIONS'] = 'ON'
 if args.vendor_string:
     common_cmake_defines['CLANG_VENDOR'] = args.vendor_string
-    common_cmake_defines['LLD_VENDOR'] = args.vendor_string
 if args.multicall:
     common_cmake_defines['LLVM_TOOL_LLVM_DRIVER_BUILD'] = 'ON'
 if args.defines:
