@@ -5,14 +5,16 @@
 # Build LLVM
 export llvm_log="${DIR}/build-llvm-${release_tag}.log"
 ./build-llvm.py ${build_flags} \
-    --defines LLVM_PARALLEL_COMPILE_JOBS="${cpu_core}" LLVM_PARALLEL_LINK_JOBS="${cpu_core}" \
+    --defines LLVM_PARALLEL_COMPILE_JOBS="${cpu_core}" LLVM_PARALLEL_LINK_JOBS="${cpu_core}" LLVM_ENABLE_RUNTIMES="compiler-rt" CMAKE_C_FLAGS="-O3 -march=native" CMAKE_CXX_FLAGS="-O3 -march=native" \
     --build-stage1-only \
     --build-target distribution \
     --install-folder "${install_path}" \
     --install-target distribution \
-    --projects clang lld \
+    --projects clang lld polly compiler-rt \
     --llvm-folder "${DIR}/src/llvm-project" \
     --pgo kernel-defconfig \
+    --bolt \
+    --lto thin \
     --quiet-cmake \
     --targets X86 \
     --vendor-string "Gf" \
