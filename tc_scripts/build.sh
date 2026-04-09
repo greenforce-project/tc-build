@@ -15,6 +15,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
     --pgo kernel-defconfig \
     --bolt \
     --lto thin \
+    --multicall \
     --quiet-cmake \
     --targets X86 \
     --vendor-string "Gf" \
