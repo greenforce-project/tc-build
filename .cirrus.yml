@@ -16,7 +16,7 @@ cloning_task:
   timeout_in: 120m
   only_if: $CIRRUS_BRANCH == 'main'
   script:
-    - git clone --single-branch "${llvm_url}" -b main src/llvm-project --depth=1
+    - git clone --single-branch "${llvm_url}" -b release/22.x src/llvm-project --depth=1
   profdata_cache:
     folder: src/llvm-project
     fingerprint_key: $CIRRUS_BUILD_ID
