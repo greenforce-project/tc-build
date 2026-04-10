@@ -10,6 +10,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
     --build-target distribution \
     --install-folder "${install_path}" \
     --install-target distribution \
+    --distribution-profile kernel \
     --projects clang lld polly compiler-rt \
     --llvm-folder "${DIR}/src/llvm-project" \
     --pgo kernel-defconfig \
