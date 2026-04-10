@@ -17,6 +17,7 @@ cloning_task:
   only_if: $CIRRUS_BRANCH == 'main'
   script:
     - git clone --single-branch "${llvm_url}" -b release/22.x src/llvm-project --depth=1
+    - sed -i 's/set(LLVM_VERSION_SUFFIX.*/set(LLVM_VERSION_SUFFIX "")/' src/llvm-project/cmake/Modules/LLVMVersion.cmake
   profdata_cache:
     folder: src/llvm-project
     fingerprint_key: $CIRRUS_BUILD_ID
