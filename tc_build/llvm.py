@@ -367,7 +367,7 @@ class LLVMBuilder(Builder):
         # disable the optimization when compiler-rt is enabled and there is an
         # install directory. Ideally thin archives should still be usable for
         # non-compiler-rt projects.
-        if not (self.folders.install and self.project_is_enabled('compiler-rt')):
+        if not (tc_build.utils.path_is_set(self.folders.install) and self.project_is_enabled('compiler-rt')):
             self.cmake_defines['CMAKE_CXX_ARCHIVE_CREATE'] = '<CMAKE_AR> DqcT <TARGET> <OBJECTS>'
         self.cmake_defines['CMAKE_CXX_ARCHIVE_FINISH'] = 'true'
 
