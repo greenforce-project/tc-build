@@ -133,7 +133,7 @@ class HostTools(Tools):
         if (llvm_profdata := Path(self.cc.parent, 'llvm-profdata')).exists():
             return llvm_profdata
 
-        return None
+        return tc_build.utils.UNINIT_PATH
 
     def from_env(self, key: str) -> Path:
         if key not in os.environ:
