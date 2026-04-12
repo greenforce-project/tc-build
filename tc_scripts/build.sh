@@ -19,7 +19,7 @@ export llvm_log="${DIR}/build-llvm-${release_tag}.log"
     --multicall \
     --quiet-cmake \
     --targets AArch64 ARM X86 \
-    --vendor-string "Cirrus" \
+    --vendor-string "cirrus" \
     2>&1 | tee "${llvm_log}"
 
 for clang in "${install_path}"/bin/clang; do
