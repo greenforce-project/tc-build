@@ -1,23 +1,23 @@
-#!/usr/bin/env python3
+from __future__ import annotations
 
 import os
-from pathlib import Path
 import shutil
 import subprocess
-from tempfile import NamedTemporaryFile
 import time
-from typing import Optional, TypedDict, Union
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from typing import TypedDict
 
+import tc_build.utils
 from tc_build.builder import Builder
 from tc_build.source import SourceManager
-import tc_build.utils
 
 
 class MakeVars(TypedDict, total=False):
     ARCH: str
     CC: Path
     CROSS_COMPILE: str
-    HOSTCC: Union[Path, str]
+    HOSTCC: Path | str
     HOSTCXX: str
     HOSTLDFLAGS: str
     KCFLAGS: str
@@ -48,9 +48,12 @@ class KernelBuilder(Builder):
             # We do not want warnings to cause build failures when profiling.
             'KCFLAGS': '-Wno-error',
         }
+        self.needs_binutils: bool = False
         self.show_commands: bool = True
+        self.silent: bool = True
         self.toolchain_prefix: Path = tc_build.utils.UNINIT_PATH
         self.toolchain_version: tuple[int, ...] = ()
+        self.use_ias: bool = True
 
     def build(self) -> None:
         bin_folder = Path(self.toolchain_prefix, 'bin')
@@ -66,7 +69,7 @@ class KernelBuilder(Builder):
         else:
             self.make_variables['HOSTCC'] = 'gcc'
             self.make_variables['HOSTCXX'] = 'g++'
-        if self.needs_binutils():
+        if self.needs_binutils or not self.use_ias:
             if not shutil.which(f"{self.cross_compile}elfedit"):
                 tc_build.utils.print_warning(
                     f"binutils for {self.make_variables['ARCH']} ('{self.cross_compile}') could not be found, skipping kernel build..."
@@ -74,7 +77,7 @@ class KernelBuilder(Builder):
                 return
             self.make_variables['CROSS_COMPILE'] = self.cross_compile
         self.make_variables['LLVM'] = f"{bin_folder}/"
-        if not self.can_use_ias():
+        if not self.use_ias:
             self.make_variables['LLVM_IAS'] = '0'
         self.make_variables['O'] = self.folders.build
 
@@ -116,7 +119,10 @@ class KernelBuilder(Builder):
                 '--output', self.bolt_sampling_output,
                 '--',
             ]  # fmt: off
-        make_cmd += ['make', '-C', self.folders.source, f"-skj{os.cpu_count()}"]
+        make_flags = ['-C', self.folders.source, '-k', f"-j{os.cpu_count()}"]
+        if self.silent:
+            make_flags.append('-s')
+        make_cmd += ['make', *make_flags]
         make_cmd += [f"{key}={self.make_variables[key]}" for key in sorted(self.make_variables)]
         make_cmd += [*self.config_targets, 'all']
 
@@ -132,17 +138,16 @@ class KernelBuilder(Builder):
                 kconfig_allconfig.close()
         tc_build.utils.print_info(f"Build duration: {tc_build.utils.get_duration(build_start)}")
 
-    def can_use_ias(self) -> bool:
-        return True
-
     def get_toolchain_version(self) -> tuple[int, ...]:
         if self.toolchain_version:
             return self.toolchain_version
 
         if not tc_build.utils.path_is_set(self.toolchain_prefix):
-            raise RuntimeError('get_toolchain_version(): No toolchain prefix set?')
+            msg = 'get_toolchain_version(): No toolchain prefix set?'
+            raise RuntimeError(msg)
         if not (clang := Path(self.toolchain_prefix, 'bin/clang')).exists():
-            raise RuntimeError(f"clang could not be found in {self.toolchain_prefix}?")
+            msg = f"clang could not be found in {self.toolchain_prefix}?"
+            raise RuntimeError(msg)
 
         clang_cmd = [clang, '-E', '-P', '-x', 'c', '-']
         clang_input = '__clang_major__ __clang_minor__ __clang_patchlevel__'
@@ -156,10 +161,7 @@ class KernelBuilder(Builder):
     def can_use_clang_as_hostcc(self) -> bool:
         return self._test_clang('-c')
 
-    def needs_binutils(self) -> bool:
-        return not self.can_use_ias()
-
-    def _test_clang(self, args: Optional[Union[str, list]] = None) -> bool:
+    def _test_clang(self, args: str | list | None = None) -> bool:
         clang = Path(self.toolchain_prefix, 'bin/clang')
 
         clang_args = ['-x', 'c', '-o', '/dev/null', '-']
@@ -169,7 +171,8 @@ class KernelBuilder(Builder):
             elif isinstance(args, list):
                 clang_args.extend(args)
             else:
-                raise ValueError(f"Invalid type for args: {args}")
+                msg = f"Invalid type for args: {args}"
+                raise ValueError(msg)
 
         prog = 'int main(void) { return 0; }'
 
@@ -188,8 +191,10 @@ class ArmKernelBuilder(KernelBuilder):
 
         self.cross_compile = 'arm-linux-gnueabi-'
 
-    def can_use_ias(self) -> bool:
-        return self.get_toolchain_version() >= (13, 0, 0)
+    def build(self) -> None:
+        self.use_ias = self.get_toolchain_version() >= (13, 0, 0)
+
+        super().build()
 
 
 class ArmV5KernelBuilder(ArmKernelBuilder):
@@ -207,7 +212,8 @@ class ArmV6KernelBuilder(ArmKernelBuilder):
 
     def build(self) -> None:
         if not tc_build.utils.path_is_set(self.lsm.location):
-            raise RuntimeError('build() called without configured LinuxSourceManager?')
+            msg = 'build() called without configured LinuxSourceManager?'
+            raise RuntimeError(msg)
 
         if self.get_toolchain_version() < (14, 0, 0) and self.lsm.get_version() >= (6, 14, 0):
             # https://github.com/ClangBuiltLinux/continuous-integration2/pull/807
@@ -262,8 +268,33 @@ class PowerPCKernelBuilder(KernelBuilder):
     def __init__(self) -> None:
         super().__init__('powerpc')
 
-    def can_use_ias(self) -> bool:
-        return False
+        self.use_ias = False
+
+        self.possible_cross_compile_vals: tuple[str, str, str] = (
+            'powerpc-linux-gnu-',
+            'powerpc64-linux-gnu-',
+            'powerpc64le-linux-gnu-',
+        )
+
+    def find_cross_compile(self) -> None:
+        if self.cross_compile:  # already run
+            return
+
+        # Most powerpc binutils support both types of endianness and word
+        # sizes. Look for whatever one is available.
+        for cross_compile in self.possible_cross_compile_vals:
+            if shutil.which(f"{cross_compile}elfedit"):
+                self.cross_compile = cross_compile
+                return
+
+        # No binutils found. Set cross compile to the first value in the tuple,
+        # as that will be the "most compatible" one to report back to the user.
+        self.cross_compile = self.possible_cross_compile_vals[0]
+
+    def build(self) -> None:
+        self.find_cross_compile()
+
+        super().build()
 
 
 class PowerPC32KernelBuilder(PowerPCKernelBuilder):
@@ -271,7 +302,6 @@ class PowerPC32KernelBuilder(PowerPCKernelBuilder):
         super().__init__()
 
         self.config_targets = ['pmac32_defconfig', 'disable-werror.config']
-        self.cross_compile = 'powerpc-linux-gnu-'
 
 
 class PowerPC64KernelBuilder(PowerPCKernelBuilder):
@@ -279,15 +309,19 @@ class PowerPC64KernelBuilder(PowerPCKernelBuilder):
         super().__init__()
 
         self.config_targets = ['ppc64_guest_defconfig', 'disable-werror.config']
-        self.cross_compile = 'powerpc64-linux-gnu-'
+        # https://github.com/ClangBuiltLinux/linux/issues/1601
+        self.needs_binutils = True
+        self.possible_cross_compile_vals = (
+            'powerpc64-linux-gnu-',
+            'powerpc64le-linux-gnu-',
+            'powerpc-linux-gnu-',
+        )
 
-    # https://github.com/llvm/llvm-project/commit/33504b3bbe10d5d4caae13efcb99bd159c126070
-    def can_use_ias(self) -> bool:
-        return self.get_toolchain_version() >= (14, 0, 2)
+    def build(self) -> None:
+        # https://github.com/llvm/llvm-project/commit/33504b3bbe10d5d4caae13efcb99bd159c126070
+        self.use_ias = self.get_toolchain_version() >= (14, 0, 2)
 
-    # https://github.com/ClangBuiltLinux/linux/issues/1601
-    def needs_binutils(self) -> bool:
-        return True
+        super().build()
 
 
 class PowerPC64LEKernelBuilder(PowerPC64KernelBuilder):
@@ -295,9 +329,15 @@ class PowerPC64LEKernelBuilder(PowerPC64KernelBuilder):
         super().__init__()
 
         self.config_targets = ['powernv_defconfig', 'disable-werror.config']
-        self.cross_compile = 'powerpc64le-linux-gnu-'
+        self.possible_cross_compile_vals = (
+            'powerpc64le-linux-gnu-',
+            'powerpc64-linux-gnu-',
+            'powerpc-linux-gnu-',
+        )
 
     def build(self) -> None:
+        self.find_cross_compile()
+
         # https://github.com/ClangBuiltLinux/linux/issues/1260
         if self.get_toolchain_version() < (12, 0, 0):
             self.make_variables['LD'] = self.cross_compile + 'ld'
@@ -311,9 +351,11 @@ class RISCVKernelBuilder(KernelBuilder):
 
         self.cross_compile = 'riscv64-linux-gnu-'
 
-    # https://github.com/llvm/llvm-project/commit/bbea64250f65480d787e1c5ff45c4de3ec2dcda8
-    def can_use_ias(self) -> bool:
-        return self.get_toolchain_version() >= (13, 0, 0)
+    def build(self) -> None:
+        # https://github.com/llvm/llvm-project/commit/bbea64250f65480d787e1c5ff45c4de3ec2dcda8
+        self.use_ias = self.get_toolchain_version() >= (13, 0, 0)
+
+        super().build()
 
 
 class S390KernelBuilder(KernelBuilder):
@@ -362,13 +404,9 @@ class S390KernelBuilder(KernelBuilder):
         if 'error: invalid output format:' in objcopy_res.stderr:
             self.make_variables['OBJCOPY'] = f"{self.cross_compile}objcopy"
 
+        self.needs_binutils = 'LD' in self.make_variables or 'OBJCOPY' in self.make_variables
+
         super().build()
-
-    def can_use_ias(self) -> bool:
-        return True
-
-    def needs_binutils(self) -> bool:
-        return 'LD' in self.make_variables or 'OBJCOPY' in self.make_variables
 
 
 class X8664KernelBuilder(KernelBuilder):
@@ -377,7 +415,8 @@ class X8664KernelBuilder(KernelBuilder):
 
     def build(self) -> None:
         if not tc_build.utils.path_is_set(self.lsm.location):
-            raise RuntimeError('build() called without configured LinuxSourceManager?')
+            msg = 'build() called without configured LinuxSourceManager?'
+            raise RuntimeError(msg)
 
         if self.get_toolchain_version() < (15, 0, 0) and self.lsm.get_version() >= (6, 15, 0):
             # https://git.kernel.org/linus/7861640aac52bbbb3dc2cd40fb93dfb3b3d0f43c
@@ -396,6 +435,7 @@ class LLVMKernelBuilder(Builder):
         self.bolt_instrumentation = False
         self.bolt_sampling_output: Path = tc_build.utils.UNINIT_PATH
         self.matrix = {}
+        self.silent: bool = True
         self.toolchain_prefix: Path = tc_build.utils.UNINIT_PATH
 
     def build(self) -> None:
@@ -466,12 +506,13 @@ class LLVMKernelBuilder(Builder):
             builder.folders.build = self.folders.build
             builder.folders.source = self.folders.source
             builder.lsm = lsm
+            builder.silent = self.silent
             builder.toolchain_prefix = self.toolchain_prefix
             builder.build()
 
 
 class LinuxSourceManager(SourceManager):
-    def __init__(self, location: Optional[Path] = None) -> None:
+    def __init__(self, location: Path | None = None) -> None:
         super().__init__(location)
 
         self.patches: list[Path] = []
@@ -524,7 +565,7 @@ class LinuxSourceManager(SourceManager):
                         f"{patch} has already been applied in {self.location}, consider removing it"
                     )
                 else:
-                    raise err
+                    raise
             else:
                 tc_build.utils.print_info(f"Applied {patch} to {self.location}")
         tc_build.utils.print_info(f"Source successfully prepared in {self.location}")

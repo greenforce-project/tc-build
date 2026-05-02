@@ -1,14 +1,12 @@
-#!/usr/bin/env python3
-
 import os
-from pathlib import Path
 import platform
 import subprocess
+from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import tc_build.utils
 from tc_build.builder import Builder
 from tc_build.source import SourceManager
-import tc_build.utils
 
 
 class BinutilsBuilder(Builder):
@@ -220,12 +218,14 @@ class BinutilsSourceManager(SourceManager):
 
     def prepare(self) -> None:
         if not tc_build.utils.path_is_set(self.location):
-            raise RuntimeError('No source location set?')
+            msg = 'No source location set?'
+            raise RuntimeError(msg)
         if self.location.exists():
             return  # source already set up
 
         if not tc_build.utils.path_is_set(self.tarball.local_location):
-            raise RuntimeError('No local tarball location set?')
+            msg = 'No local tarball location set?'
+            raise RuntimeError(msg)
         if not self.tarball.local_location.exists():
             self.tarball.download()
 

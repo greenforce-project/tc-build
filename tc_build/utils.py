@@ -1,13 +1,13 @@
-#!/usr/bin/env python3
+from __future__ import annotations
 
+import re
+import subprocess
+import sys
+import time
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
-import subprocess
-import sys
-import re
-import time
-from typing import Optional, Union
+from typing import Union
 
 UNINIT_PATH = Path('/uninitialized')
 ValidCmdItem = Union[bytes, PathLike, str]
@@ -31,10 +31,10 @@ def create_gitignore(folder: Path) -> None:
 def curl(
     url: str,
     capture_output: bool = True,
-    destination: Optional[Union[str, Path]] = None,
-    text: Optional[bool] = True,
+    destination: str | Path | None = None,
+    text: bool | None = True,
 ) -> str:
-    curl_cmd: list[Union[Path, str]] = ['curl', '-fLSs']
+    curl_cmd: list[Path | str] = ['curl', '-fLSs']
     if destination:
         curl_cmd += ['-o', destination]
     curl_cmd.append(url)
@@ -46,7 +46,7 @@ def flush_std_err_out() -> None:
     sys.stdout.flush()
 
 
-def get_duration(start_seconds: float, end_seconds: Optional[float] = None) -> str:
+def get_duration(start_seconds: float, end_seconds: float | None = None) -> str:
     if not end_seconds:
         end_seconds = time.time()
     seconds = int(end_seconds - start_seconds)
@@ -72,7 +72,7 @@ def libc_is_musl() -> bool:
     # version information so it is good enough. Just 'check=False' it and move
     # on.
     ldd_out = subprocess.run(['ldd', '--version'], capture_output=True, check=False, text=True)
-    return 'musl' in (ldd_out.stderr if ldd_out.stderr else ldd_out.stdout)
+    return 'musl' in (ldd_out.stderr or ldd_out.stdout)
 
 
 def path_is_set(path: Path) -> bool:
